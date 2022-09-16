@@ -20,6 +20,55 @@ import {
 // eslint-disable-next-line import/no-unresolved
 } from './scripts.js';
 
+async function checkRedirect(currentPathName, geoLookup) {
+  const pathNameSplit = currentPathName.split('/');
+  let redirect = null;
+  if (pathNameSplit && pathNameSplit[1] && pathNameSplit[1] !== geoLookup) {
+    let subPath = geoLookup.length > 0 ? `/${geoLookup}` : '';
+    let i = 1;
+    while (pathNameSplit[i] !== 'express' && i < pathNameSplit.length) {
+      i += 1;
+    }
+    for (; i < pathNameSplit.length; i += 1) {
+      subPath = `${subPath}/${pathNameSplit[i]}`;
+    }
+    redirect = `${window.location.protocol}//${window.location.host}${subPath}${window.location.search}`;
+  }
+  return redirect;
+}
+
+async function geoCheck(userGeo, userLocale, geoCheckForce) {
+  const isInternationalCookie = document.cookie.match(/^(.*;)?\s*international\s*=\s*[^;]+(.*)?$/);
+  let redirect = null;
+  // DON'T if international cookie is set, unless geocheck=force is passed explicitly
+  if (geoCheckForce || !isInternationalCookie) {
+    const resp = await fetch(`${window.location.protocol}//${window.location.host}/express/system/geo-map.json`);
+    const json = await (resp.json());
+    let geoLookup = null;
+    for (let i = 0; i < json.data.length && geoLookup == null; i += 1) {
+      if (json.data[i].usergeo === userGeo) {
+        if (json.data[i].userlocales && json.data[i].userlocales.length > 0) {
+          const redirectLocalPaths = json.data[i].redirectlocalpaths.split(',');
+          const userLanguage = userLocale.substr(0, userLocale.indexOf('-'));
+          const userExpectedPath = `${userGeo.toLowerCase()}_${userLanguage}`;
+          for (let j = 0; j < redirectLocalPaths.length && geoLookup == null; j += 1) {
+            if (redirectLocalPaths[j] === userExpectedPath) {
+              geoLookup = userExpectedPath;
+            }
+          }
+          if (geoLookup == null) {
+            geoLookup = json.data[i].redirectdefaultpath;
+          }
+        } else {
+          geoLookup = json.data[i].redirectdefaultpath;
+        }
+      }
+    }
+    redirect = checkRedirect(window.location.pathname, geoLookup);
+  }
+  return redirect;
+}
+
 function loadIMS() {
   window.adobeid = {
     client_id: 'MarvelWeb3',
@@ -137,7 +186,7 @@ function loadFEDS() {
     },
   };
 
-  window.addEventListener('feds.events.experience.loaded', () => {
+  window.addEventListener('feds.events.experience.loaded', async () => {
     document.querySelector('body').classList.add('feds-loaded');
     /* attempt to switch link */
     if (window.location.pathname.includes('/create/')
@@ -167,6 +216,21 @@ function loadFEDS() {
       });
     }
 
+    if (window.hlx.geocheck) {
+      const userGeo = window.feds
+      && window.feds.data
+      && window.feds.data.location
+      && window.feds.data.location.country
+        ? window.feds.data.location.country : null;
+      const navigatorLocale = navigator.languages
+      && navigator.languages.length
+        ? navigator.languages[0].toLowerCase()
+        : navigator.language.toLowerCase();
+      const redirect = await geoCheck(userGeo, navigatorLocale, window.hlx.geocheckforce);
+      if (redirect) {
+        window.location.href = redirect;
+      }
+    }
     /* region based redirect to homepage */
     if (window.feds && window.feds.data && window.feds.data.location && window.feds.data.location.country === 'CN') {
       const regionpath = locale === 'us' ? '/' : `/${locale}/`;
