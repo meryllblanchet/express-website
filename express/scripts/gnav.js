@@ -27,7 +27,7 @@ async function checkRedirect(location, geoLookup) {
     pathNameSplit.shift(); // remove empty first segment
     const i = pathNameSplit.indexOf('express');
     pathNameSplit.splice(0, i == 0 ? 0 : 1, geoLookup); // prepend or replace language segment
-    return `${window.origin}${pathNameSplit.join('/')}${location.search}${location.hash}`;
+    return `${window.origin}/${pathNameSplit.join('/')}${location.search}${location.hash}`;
   }
   return null; // invalid express url
 }
