@@ -20,14 +20,14 @@ import {
 // eslint-disable-next-line import/no-unresolved
 } from './scripts.js';
 
-async function checkRedirect(currentPathName, geoLookup) {
-  const pathNameSplit = currentPathName.split('/');
+async function checkRedirect(location, geoLookup) {
+  const pathNameSplit = location.pathname.split('/');
   let redirect = null;
 if (!pathNameSplit.includes(geoLookup)) {
   pathNameSplit.shift(); // remove empty first segment
   const i = pathNameSplit.indexOf('express');
   pathNameSplit.splice(0, i == 0 ? 0 : 1, geoLookup); // prepend or replace language segment
-  return `${window.origin}${pathNameSplit.join('/')}${window.location.search}${window.location.hash}`;
+  return `${window.origin}${pathNameSplit.join('/')}${location.search}${location.hash}`;
 }
 return null; // invalid express url
 }
@@ -59,7 +59,7 @@ async function geoCheck(userGeo, userLocale, geoCheckForce) {
         }
       }
     }
-    redirect = checkRedirect(window.location.pathname, geoLookup);
+    redirect = checkRedirect(window.location, geoLookup);
   }
   return redirect;
 }
