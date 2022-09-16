@@ -51,7 +51,7 @@ async function geoCheck(userGeo, userLocale, geoCheckForce) {
           const redirectLocalPaths = json.data[i].redirectlocalpaths.split(',');
           const userLanguage = userLocale.substr(0, userLocale.indexOf('-'));
           const userExpectedPath = `${userGeo.toLowerCase()}_${userLanguage}`;
-          for (let j = 0; j < redirectLocalPaths.length && geoLookup == null; j += 1) {
+          for (let j = 0; j < redirectLocalPaths.length && geoLookup === null; j += 1) {
             if (redirectLocalPaths[j] === userExpectedPath) {
               geoLookup = userExpectedPath;
             }
