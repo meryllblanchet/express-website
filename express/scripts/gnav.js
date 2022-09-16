@@ -35,7 +35,7 @@ return null; // invalid express url
 async function geoCheck(userGeo, userLocale, geoCheckForce) {
   const isInternationalCookie = document.cookie.match(/^(.*;)?\s*international\s*=\s*[^;]+(.*)?$/);
   let redirect = null;
-  // DON'T if international cookie is set, unless geocheck=force is passed explicitly
+  // DON'T check geo if international cookie is set, unless geocheck=force is passed explicitly
   if (geoCheckForce || !isInternationalCookie) {
     const resp = await fetch(`${window.location.origin}/express/system/geo-map.json`);
     const json = await resp.json();
