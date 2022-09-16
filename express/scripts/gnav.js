@@ -43,7 +43,7 @@ async function geoCheck(userGeo, userLocale, geoCheckForce) {
   // DON'T if international cookie is set, unless geocheck=force is passed explicitly
   if (geoCheckForce || !isInternationalCookie) {
     const resp = await fetch(`${window.location.origin}/express/system/geo-map.json`);
-    const json = await (resp.json());
+    const json = await resp.json();
     let geoLookup = null;
     for (let i = 0; i < json.data.length && geoLookup == null; i += 1) {
       if (json.data[i].usergeo === userGeo) {
