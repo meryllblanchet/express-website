@@ -23,18 +23,13 @@ import {
 async function checkRedirect(currentPathName, geoLookup) {
   const pathNameSplit = currentPathName.split('/');
   let redirect = null;
-  if (pathNameSplit && pathNameSplit[1] && pathNameSplit[1] !== geoLookup) {
-    let subPath = geoLookup.length > 0 ? `/${geoLookup}` : '';
-    let i = 1;
-    while (pathNameSplit[i] !== 'express' && i < pathNameSplit.length) {
-      i += 1;
-    }
-    for (; i < pathNameSplit.length; i += 1) {
-      subPath = `${subPath}/${pathNameSplit[i]}`;
-    }
-    redirect = `${window.location.protocol}//${window.location.host}${subPath}${window.location.search}`;
-  }
-  return redirect;
+if (!pathNameSplit.includes(geoLookup)) {
+  pathNameSplit.shift(); // remove empty first segment
+  const i = pathNameSplit.indexOf('express');
+  pathNameSplit.splice(0, i == 0 ? 0 : 1, geoLookup); // prepend or replace language segment
+  return `${window.origin}${pathNameSplit.join('/')}${window.location.search}${window.location.hash}`;
+}
+return null; // invalid express url
 }
 
 async function geoCheck(userGeo, userLocale, geoCheckForce) {
